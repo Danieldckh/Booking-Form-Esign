@@ -28,6 +28,7 @@ import { fileURLToPath } from "url";
 import { pool, toCamelCase } from "./lib/db.js";
 import { buildEsignPageHtml } from "./lib/template.js";
 import { renderHtmlToPdfBase64, closeBrowser } from "./lib/pdf.js";
+import { renderBookingFormHtml } from "./lib/format-deliverables.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,14 +88,69 @@ function requireAdmin(req, res, next) {
 app.post("/api/admin/create-token", requireAdmin, async (req, res) => {
   try {
     const { bookingFormId, html, expiresInDays } = req.body || {};
-    if (!bookingFormId || !html) {
-      return res.status(400).json({ error: "bookingFormId and html are required" });
+    if (!bookingFormId) {
+      return res.status(400).json({ error: "bookingFormId is required" });
     }
 
-    // Verify the booking form exists before creating the token
-    const bf = await pool.query("SELECT id FROM booking_forms WHERE id = $1", [bookingFormId]);
+    // Verify the booking form exists AND grab form_data so we can render
+    // the HTML on the fly when the caller doesn't pass one. This is the
+    // common case from the CRM admin flow — pass an id, get a session.
+    const bf = await pool.query(
+      "SELECT id, form_data FROM booking_forms WHERE id = $1",
+      [bookingFormId]
+    );
     if (bf.rows.length === 0) {
       return res.status(404).json({ error: "Booking form not found" });
+    }
+
+    // Resolve the HTML snapshot to store on the token. Two paths:
+    //   1. Caller provided pre-rendered HTML → use it (legacy / advanced)
+    //   2. Caller provided just bookingFormId → render from form_data
+    // If form_data is missing AND no html was provided, we can't proceed.
+    let snapshotHtml = html;
+    if (!snapshotHtml) {
+      const formData = bf.rows[0].form_data;
+      if (!formData) {
+        return res.status(400).json({
+          error: "Booking form has no form_data; provide html in the request body or attach form_data first"
+        });
+      }
+      try {
+        // renderBookingFormHtml returns just the deliverables rows. We
+        // wrap them in a <table class="booking-table"> so base.html's
+        // existing styling kicks in, and prepend a small company info
+        // table built directly from client_information for the page
+        // header (company name, trading name, primary contact, email).
+        const innerRows = renderBookingFormHtml(formData);
+        const ci = formData.client_information || {};
+        const pc = ci.primary_contact || {};
+        const escapeHtml = (s) =>
+          String(s == null ? "" : s)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const companyInfoTable = `
+<table class="company-table">
+  <tr><td>Full Company Name</td><td>${escapeHtml(ci.company_name)}</td></tr>
+  <tr><td>Trading Name</td><td>${escapeHtml(ci.trading_name)}</td></tr>
+  <tr><td>Reg Number</td><td>${escapeHtml(ci.company_reg_number)}</td></tr>
+  <tr><td>VAT Number</td><td>${escapeHtml(ci.vat_number)}</td></tr>
+  <tr><td>Contact Person</td><td>${escapeHtml(pc.name)}</td></tr>
+  <tr><td>Email</td><td>${escapeHtml(pc.email)}</td></tr>
+  <tr><td>Phone</td><td>${escapeHtml(pc.cell || pc.tel)}</td></tr>
+</table>
+`;
+        const bookingTable = `
+<div class="booking-table-wrapper">
+  <table class="booking-table">
+    <tbody>${innerRows}</tbody>
+  </table>
+</div>
+`;
+        snapshotHtml = companyInfoTable + bookingTable;
+      } catch (e) {
+        console.error("Render from form_data failed:", e);
+        return res.status(500).json({ error: "Failed to render booking form HTML: " + e.message });
+      }
     }
 
     const token = newToken();
@@ -106,7 +162,7 @@ app.post("/api/admin/create-token", requireAdmin, async (req, res) => {
       `INSERT INTO booking_form_esign_tokens
         (booking_form_id, token, html_snapshot, expires_at)
        VALUES ($1, $2, $3, $4)`,
-      [bookingFormId, token, html, expiresAt]
+      [bookingFormId, token, snapshotHtml, expiresAt]
     );
 
     // Also write the canonical URL back to booking_forms.esign_url so
