@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Booking Form</title>
+
+<style>
+  :root {
+    --brand-red: #D72626;
+    --row-gray: #f5f5f5;
+    --edit-blue: #e7f1ff;
+    --edit-border: #8bb8ff;
+    --line-gray: #cfcfcf;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #fff;
+  }
+
+  .page-wrapper {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 35px 25px 80px;
+    position: relative;
+  }
+
+  .banner {
+    background: var(--brand-red);
+    color: #fff;
+    padding: 26px 38px;
+    font-size: 30px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 55px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .header img {
+    height: 70px;
+    object-fit: contain;
+  }
+
+  .logo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .logo-btn:focus-visible {
+    outline: 2px solid var(--edit-border);
+    outline-offset: 6px;
+    border-radius: 8px;
+  }
+
+  .address {
+    text-align: right;
+    font-size: 14px;
+    color: var(--brand-red);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .header-editable[contenteditable="true"] {
+    cursor: text;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .header-editable[contenteditable="true"]:focus {
+    background: var(--edit-blue);
+    border: 1px solid var(--edit-border);
+    padding: 4px 6px;
+  }
+
+  .legal-strip {
+    text-align: center;
+    margin: 10px 0 40px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 900;
+    margin: 0 0 15px;
+    text-transform: uppercase;
+    color: var(--brand-red);
+  }
+
+  .details-box,
+  .contact-table-wrapper,
+  .booking-table-wrapper {
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 14px;
+  }
+
+  table td,
+  table th {
+    padding: 14px 18px;
+    vertical-align: top;
+    position: relative;
+    border: none;
+    line-height: 1.35;
+  }
+
+  table tr:nth-child(odd) { background: var(--row-gray); }
+  table tr:nth-child(even) { background: #fff; }
+
+  table tr:first-child td,
+  table tr:first-child th {
+    font-weight: 600;
+  }
+
+  table td:not(:last-child)::after,
+  table th:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    background: var(--line-gray);
+  }
+
+  .editable {
+    width: 100%;
+    min-height: 20px;
+    background: transparent;
+    border: none;
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    cursor: text;
+    border-radius: 6px;
+  }
+
+  .editable:focus {
+    background: var(--edit-blue);
+    border: 1px solid var(--edit-border);
+    padding: 4px;
+  }
+
+  .company-table td:nth-child(odd) {
+    font-weight: 600;
+  }
+
+  .company-table td {
+    width: 25%;
+  }
+
+  .contact-table tr:first-child td,
+  .booking-table tr:first-child td {
+    border-bottom: 2px solid var(--line-gray);
+  }
+
+  .contact-table td:first-child {
+    font-weight: 600;
+  }
+
+  .booking-table td:first-child {
+    width: 30%;
+  }
+
+  .booking-table .month-title {
+    margin: 0;
+  }
+
+  .deliverables-content {
+    margin-top: 6px;
+  }
+
+  .deliverable-line {
+    margin: 0;
+  }
+
+  .deliverable-line + .deliverable-line {
+    margin-top: 4px;
+  }
+
+  .deliverable-spacer {
+    height: 8px;
+  }
+
+  .booking-table tr.empty-deliverables td {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .booking-table tr.empty-deliverables .editable {
+    min-height: 0;
+  }
+
+  body.android .booking-table tr.empty-deliverables td:not(:first-child) .editable,
+  body.android .booking-table tr.empty-deliverables td:not(:first-child) input {
+    text-align: center;
+  }
+
+  .footer-section {
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 28px;
+    background: #fafafa;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    gap: 16px 28px;
+    align-items: start;
+  }
+
+  .confirm-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #222;
+    font-weight: 600;
+  }
+
+  .totals-column {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .totals-block {
+    width: 100%;
+    max-width: 280px;
+    background: #fff;
+    border: 1px solid var(--line-gray);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+  }
+
+  .totals-row + .totals-row {
+    margin-top: 8px;
+  }
+
+  .totals-row .label {
+    color: #444;
+  }
+
+  .totals-row .editable {
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .totals-row .amount {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .totals-row.total-row {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-gray);
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--brand-red);
+  }
+
+  .currency-symbol {
+    font-weight: 700;
+  }
+
+  .currency-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    margin-left: 4px;
+  }
+
+  .payment-block {
+    grid-column: 1 / -1;
+    background: #fff;
+    border: 1px dashed var(--line-gray);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+  }
+
+  .payment-block .label {
+    font-weight: 700;
+    color: #222;
+  }
+
+  @media (max-width: 760px) {
+    .footer-section {
+      grid-template-columns: 1fr;
+    }
+
+    .totals-column {
+      justify-content: flex-start;
+    }
+
+    .totals-block {
+      max-width: none;
+    }
+  }
+
+  .add-row-btn {
+    display: inline-block;
+    margin: 5px 0 20px;
+    padding: 10px 18px;
+    border-radius: 7px;
+    border: none;
+    background: var(--brand-red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .add-row-btn:hover { opacity: 0.9; }
+
+  .status-line {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #111;
+  }
+
+  .btn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+</style>
+</head>
+
+<body id="booking-form-root">
+
+<div class="banner">Booking Form Editor</div>
+
+<div class="page-wrapper">
+
+  <div class="header">
+    <button class="logo-btn" type="button" id="logo-upload-btn" aria-label="Click to upload logo">
+      <img id="header-logo" src="https://checklist.proagrihub.com/ProAgriMedia-CheckList.png" alt="Company logo">
+    </button>
+    <input type="file" id="logo-file-input" accept="image/*" hidden>
+
+    <div class="address header-editable" id="header-address" contenteditable="true" data-editable="header-address">
+      PO Box 72707, Lynnwood Ridge, 0040<br>
+      33 Oakwood Close, Silverwoods Country Estate<br>
+      Tel: 084 088 0123 | Fax: 086 458 7812
+    </div>
+  </div>
+
+  <div class="legal-strip header-editable" id="legal-strip" contenteditable="true" data-editable="legal-strip">
+    Agri Media Africa (Pty) Ltd. | Reg no: 2019/486053/07 | VAT no: 409 0303 266 | Director: Mrs. D Do Nacimento
+  </div>
+
+  <!--CONTENT_SNIPPET-->
+
+  <div class="btn-row">
+    <button class="add-row-btn" type="button" id="send-booking-to-n8n">
+      Send booking form to ProAgri
+    </button>
+  </div>
+
+  <div class="status-line" id="send-status"></div>
+</div>
+
+<script>
+  const HEADER_STORAGE_VERSION = "3";
+  const statusEl = document.getElementById("send-status");
+  const logoBtnEl = document.getElementById("logo-upload-btn");
+  const logoInputEl = document.getElementById("logo-file-input");
+  const logoImgEl = document.getElementById("header-logo");
+  const headerAddressEl = document.getElementById("header-address");
+  const legalStripEl = document.getElementById("legal-strip");
+  const DEFAULT_LOGO_PLACEHOLDER =
+    "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="260" height="70" viewBox="0 0 260 70">
+        <rect width="260" height="70" rx="10" fill="#fff"/>
+        <rect x="3" y="3" width="254" height="64" rx="8" fill="#f5f5f5" stroke="#cfcfcf" stroke-width="2"/>
+        <text x="130" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#666">
+          Click to upload logo
+        </text>
+      </svg>`
+    );
+
+  const IS_ANDROID = /Android/i.test(navigator.userAgent || "");
+  if (IS_ANDROID) document.body.classList.add("android");
+
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg || "";
+  }
+
+  function getSlugFromUrl() {
+    // /pages/testing-1.html -> testing-1
+    const path = window.location.pathname || "";
+    const last = path.split("/").filter(Boolean).pop() || "";
+    const slug = last.replace(/\.html$/i, "").trim();
+    return slug || "";
+  }
+
+  function getHeaderStorageKey() {
+    const slug = getSlugFromUrl() || "unslugged";
+    return `booking-form-header:v${HEADER_STORAGE_VERSION}:${slug}`;
+  }
+
+  function loadHeaderEdits() {
+    try {
+      const raw = localStorage.getItem(getHeaderStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+
+      if (typeof data.logoDataUrl === "string" && data.logoDataUrl.startsWith("data:") && logoImgEl) {
+        logoImgEl.src = data.logoDataUrl;
+        if (data.logoFileName) logoImgEl.dataset.logoFileName = data.logoFileName;
+      }
+
+      if (typeof data.addressHtml === "string" && headerAddressEl) {
+        headerAddressEl.innerHTML = data.addressHtml;
+      }
+
+      if (typeof data.legalStripText === "string" && legalStripEl) {
+        legalStripEl.textContent = data.legalStripText;
+      } else if (Array.isArray(data.legalItems) && legalStripEl) {
+        // Backwards compatibility for older saved header format
+        legalStripEl.textContent = data.legalItems.map((t) => String(t || "").trim()).filter(Boolean).join(" | ");
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  function saveHeaderEdits() {
+    try {
+      const legalStripText = (legalStripEl?.textContent || "").trim();
+      const legalItems = legalStripText
+        ? legalStripText.split(/\s*\|\s*/g).map((s) => s.trim()).filter(Boolean)
+        : [];
+
+      const data = {
+        logoDataUrl: (logoImgEl?.src || "").startsWith("data:") ? (logoImgEl?.src || "") : "",
+        logoFileName: logoImgEl?.dataset?.logoFileName || "",
+        addressHtml: headerAddressEl ? headerAddressEl.innerHTML : "",
+        legalStripText,
+        legalItems,
+      };
+      localStorage.setItem(getHeaderStorageKey(), JSON.stringify(data));
+    } catch {
+      // ignore
+    }
+  }
+
+  function wireHeaderEditing() {
+    loadHeaderEdits();
+
+    if (logoImgEl) {
+      logoImgEl.addEventListener(
+        "error",
+        () => {
+          if (!logoImgEl.src || !logoImgEl.src.startsWith("data:")) {
+            logoImgEl.src = DEFAULT_LOGO_PLACEHOLDER;
+          }
+        },
+        { once: true }
+      );
+    }
+
+    if (logoBtnEl && logoInputEl) {
+      logoBtnEl.addEventListener("click", () => logoInputEl.click());
+    }
+
+    if (logoInputEl && logoImgEl) {
+      logoInputEl.addEventListener("change", () => {
+        const file = logoInputEl.files && logoInputEl.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = typeof reader.result === "string" ? reader.result : "";
+          if (dataUrl) {
+            logoImgEl.src = dataUrl;
+            logoImgEl.dataset.logoFileName = file.name || "";
+            saveHeaderEdits();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.querySelectorAll('[data-editable="header-address"], [data-editable="legal-strip"]').forEach((el) => {
+      el.addEventListener("input", saveHeaderEdits);
+      el.addEventListener("blur", saveHeaderEdits);
+    });
+  }
+
+  // Keep sending the HTML "like it is" (the booking-form-root outerHTML)
+  function getBookingFormHtmlForN8n() {
+    const root = document.getElementById("booking-form-root");
+    if (!root) return null;
+    return root.outerHTML;
+  }
+
+  // Save the edited page back to the SAME slug URL by overwriting the file on the server
+  function getFullPageHtmlForSave() {
+    // documentElement.outerHTML does not include the doctype
+    return "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  }
+
+  async function saveEditsToSameUrl(slug) {
+    const fullHtml = getFullPageHtmlForSave();
+
+    const res = await fetch("/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, html: fullHtml })
+    });
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error("Save failed: " + t);
+    }
+
+    return await res.json(); // { success, url, slug }
+  }
+
+  async function forwardToN8n(payload) {
+    const res = await fetch("/send-to-n8n", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok || json.success === false) {
+      throw new Error(json.error || json.response || "n8n forward failed");
+    }
+
+    return json;
+  }
+
+  function getHeaderDataForWebhook() {
+    const legalStripText = (legalStripEl?.textContent || "").trim();
+    const legalItems = legalStripText
+      ? legalStripText.split(/\s*\|\s*/g).map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    const logoSrc = logoImgEl?.src || "";
+    return {
+      logoBase64: logoSrc.startsWith("data:") ? logoSrc : "",
+      logoFileName: logoImgEl?.dataset?.logoFileName || "",
+      addressHtml: headerAddressEl ? headerAddressEl.innerHTML : "",
+      legalStripText,
+      legalItems,
+    };
+  }
+
+  wireHeaderEditing();
+
+  document.getElementById("send-booking-to-n8n").addEventListener("click", async () => {
+    var btn = document.getElementById("send-booking-to-n8n");
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+    btn.style.opacity = "0.7";
+    btn.style.cursor = "not-allowed";
+    try {
+      setStatus("");
+
+      const slug = getSlugFromUrl();
+      if (!slug) {
+        setStatus("Error: Could not determine slug from URL.");
+        return;
+      }
+
+      const htmlForN8n = getBookingFormHtmlForN8n();
+      if (!htmlForN8n) {
+        setStatus("Error: Booking form container (#booking-form-root) not found.");
+        return;
+      }
+
+      setStatus("Saving edits to the same link...");
+      const saved = await saveEditsToSameUrl(slug);
+
+      // Extract company name from the company-table (2nd row, 2nd cell)
+      let bookingFormCompanyName = "";
+      const companyTable = document.querySelector(".company-table");
+      if (companyTable) {
+        const rows = companyTable.querySelectorAll("tr");
+        for (const row of rows) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length >= 2 && (cells[0].textContent || "").trim().toLowerCase().includes("full company name")) {
+            const editable = cells[1].querySelector(".editable");
+            bookingFormCompanyName = (editable ? editable.textContent : cells[1].textContent || "").trim();
+            break;
+          }
+        }
+      }
+
+      // saved.url is the canonical editor URL you wanted in the webhook
+      const payload = {
+        slug: saved.slug || slug,
+        url: saved.url || "",
+        html: htmlForN8n,
+        header: getHeaderDataForWebhook(),
+        bookingFormCompanyName: bookingFormCompanyName,
+      };
+
+      setStatus("Sending to ProAgri...");
+      await forwardToN8n(payload);
+
+      setStatus("Done: Saved + sent to ProAgri.");
+    } catch (err) {
+      console.error(err);
+      setStatus("Error: " + (err?.message || String(err)));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      btn.style.opacity = "";
+      btn.style.cursor = "";
+    }
+  });
+</script>
+
+</body>
+</html>

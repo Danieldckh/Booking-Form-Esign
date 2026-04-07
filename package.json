@@ -1,0 +1,19 @@
+{
+  "name": "booking-form-esign",
+  "version": "1.0.0",
+  "description": "Client-facing booking form signing + change request app. Merges the Editable and esign flows into one. Shares the ProAgri CRM Postgres.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.13.1",
+    "puppeteer-core": "^23.9.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
