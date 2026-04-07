@@ -1,10 +1,15 @@
 /* Styling for the Sign / Request Changes action bar and modals.
    Loaded on top of base.html's existing CSS. */
 
+/* base.html's existing .btn-row uses flex-direction: column +
+   align-items: flex-start. We override both so Sign + Request Changes
+   sit side-by-side, right-aligned. */
 .esign-actions {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
   gap: 12px;
-  justify-content: flex-end;
   margin-top: 24px;
 }
 
