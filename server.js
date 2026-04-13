@@ -182,7 +182,12 @@ app.post("/api/admin/create-token", requireAdmin, async (req, res) => {
 });
 
 // ── Token lookup helper (reused by every /sign and /api/sign route) ─
+// Tokens are permanent — expires_at is stored for record-keeping but
+// never enforced.  If the value looks like a plain integer we also try
+// a booking_form_id lookup (returns the newest token) so that legacy
+// CRM-generated URLs like /sign/33 keep working.
 async function loadTokenRow(token) {
+  // 1. Try exact token match first (the normal path)
   const result = await pool.query(
     `SELECT bfet.*, bf.status AS booking_status, bf.signed_at
      FROM booking_form_esign_tokens bfet
@@ -190,10 +195,24 @@ async function loadTokenRow(token) {
      WHERE bfet.token = $1`,
     [token]
   );
-  if (result.rows.length === 0) return null;
-  const row = result.rows[0];
-  if (row.expires_at && new Date(row.expires_at) < new Date()) return null;
-  return row;
+  if (result.rows.length > 0) return result.rows[0];
+
+  // 2. Fallback: if the value is numeric, treat it as a booking_form_id
+  //    and return the most recently created token for that form.
+  if (/^\d+$/.test(token)) {
+    const fallback = await pool.query(
+      `SELECT bfet.*, bf.status AS booking_status, bf.signed_at
+       FROM booking_form_esign_tokens bfet
+       LEFT JOIN booking_forms bf ON bf.id = bfet.booking_form_id
+       WHERE bfet.booking_form_id = $1
+       ORDER BY bfet.created_at DESC
+       LIMIT 1`,
+      [Number(token)]
+    );
+    if (fallback.rows.length > 0) return fallback.rows[0];
+  }
+
+  return null;
 }
 
 // ── GET /sign/:token — serve the signing page ──────────────────────
