@@ -128,15 +128,17 @@ app.post("/api/admin/create-token", requireAdmin, async (req, res) => {
           String(s == null ? "" : s)
             .replace(/&/g, "&amp;").replace(/</g, "&lt;")
             .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const editableCell = (val) =>
+          `<td><div class="editable" contenteditable="true">${escapeHtml(val)}</div></td>`;
         const companyInfoTable = `
 <table class="company-table">
-  <tr><td>Full Company Name</td><td>${escapeHtml(ci.company_name)}</td></tr>
-  <tr><td>Trading Name</td><td>${escapeHtml(ci.trading_name)}</td></tr>
-  <tr><td>Reg Number</td><td>${escapeHtml(ci.company_reg_number)}</td></tr>
-  <tr><td>VAT Number</td><td>${escapeHtml(ci.vat_number)}</td></tr>
-  <tr><td>Contact Person</td><td>${escapeHtml(pc.name)}</td></tr>
-  <tr><td>Email</td><td>${escapeHtml(pc.email)}</td></tr>
-  <tr><td>Phone</td><td>${escapeHtml(pc.cell || pc.tel)}</td></tr>
+  <tr><td>Full Company Name</td>${editableCell(ci.company_name)}</tr>
+  <tr><td>Trading Name</td>${editableCell(ci.trading_name)}</tr>
+  <tr><td>Reg Number</td>${editableCell(ci.company_reg_number)}</tr>
+  <tr><td>VAT Number</td>${editableCell(ci.vat_number)}</tr>
+  <tr><td>Contact Person</td>${editableCell(pc.name)}</tr>
+  <tr><td>Email</td>${editableCell(pc.email)}</tr>
+  <tr><td>Phone</td>${editableCell(pc.cell || pc.tel)}</tr>
 </table>
 `;
         const bookingTable = `
